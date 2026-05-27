@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Train</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #efefef;
+  --surface: #ffffff;
+  --surface2: #f2f2f2;
+  --border: #e4e4e4;
+  --text: #111111;
+  --text-2: #555555;
+  --text-3: #aaaaaa;
+  --green: #16a34a;
+  --red: #dc2626;
+  --nav-h: 68px;
+  --radius: 20px;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+.app {
+  max-width: 430px;
+  margin: 0 auto;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  flex-shrink: 0;
+  margin: 12px 14px 0;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.topbar-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chip {
+  background: var(--surface2);
+  border-radius: 30px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.chip .v { color: var(--text); }
+
+.streak-chip {
+  background: var(--text);
+  color: #fff;
+  border-radius: 30px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: none;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── SCREENS ── */
+.screen { display: none; flex: 1; overflow: hidden; }
+.screen.active { display: flex; flex-direction: column; }
+
+/* ── SCROLL ── */
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px 14px;
+  padding-bottom: calc(var(--nav-h) + 16px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* ── ASSET HEADER ── */
+.asset-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 18px 20px;
+}
+
+.asset-ticker { font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+.asset-name { font-size: 13px; color: var(--text-3); margin-top: 3px; }
+
+.badges { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; margin-top: 4px; }
+.badge {
+  background: var(--surface2);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+/* ── CHART + ACTION CARD ── */
+.main-card { padding: 0; }
+
+.chart-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px 8px;
+}
+
+.chart-lbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.tf-badge {
+  background: var(--text);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+canvas#chart { display: block; width: 100%; height: 200px; }
+
+.divider { height: 1px; background: var(--border); margin: 0 18px; }
+
+/* ── ACTION ── */
+.action-area { padding: 16px 18px 18px; }
+
+.action-q {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-2);
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.action-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.action-btn {
+  padding: 14px 8px;
+  border-radius: 14px;
+  border: 1.5px solid var(--border);
+  background: var(--surface2);
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--text);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.action-btn:active:not(:disabled) { transform: scale(0.96); }
+.action-btn:disabled { opacity: 0.4; cursor: default; }
+.btn-icon { font-size: 18px; }
+
+.action-btn.sel-up    { border-color: var(--green); background: #f0fdf4; color: var(--green); }
+.action-btn.sel-down  { border-color: var(--red);   background: #fef2f2; color: var(--red);   }
+.action-btn.sel-side  { border-color: #777; background: #f5f5f5; color: #444; }
+
+/* ── RESULT ── */
+.result-banner {
+  display: none;
+  margin-top: 12px;
+  border-radius: 14px;
+  padding: 14px 16px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.result-banner.show { display: flex; }
+.result-banner.correct { background: #f0fdf4; border: 1.5px solid #bbf7d0; }
+.result-banner.wrong   { background: #fef2f2; border: 1.5px solid #fecaca; }
+
+.result-title { font-size: 14px; font-weight: 700; }
+.result-banner.correct .result-title { color: var(--green); }
+.result-banner.wrong   .result-title { color: var(--red); }
+.result-sub { font-size: 12px; color: var(--text-3); margin-top: 3px; }
+
+.next-btn {
+  background: var(--text);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── FUNDAMENTALS ── */
+.fund-card { padding: 18px 20px; }
+
+.sec-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 12px;
+}
+
+.fund-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.fund-item {
+  background: var(--surface2);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.fund-key {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 4px;
+}
+
+.fund-cur { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+
+.fund-prev-row { display: flex; align-items: center; gap: 5px; margin-top: 3px; }
+.fund-prev { font-size: 11px; color: var(--text-3); }
+
+.delta {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.delta.up   { color: var(--green); background: #f0fdf4; }
+.delta.down { color: var(--red);   background: #fef2f2; }
+.delta.flat { color: var(--text-3); background: var(--surface2); }
+
+/* ── NEWS ── */
+.news-card { padding: 18px 20px; }
+.news-list { display: flex; flex-direction: column; gap: 8px; }
+
+.news-item {
+  background: var(--surface2);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+.news-date {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+/* ── LEADERBOARD ── */
+.lb-list { display: flex; flex-direction: column; gap: 8px; }
+
+.lb-item {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.lb-item.you { border: 2px solid var(--text); }
+
+.lb-rank { font-size: 15px; font-weight: 800; width: 26px; text-align: center; flex-shrink: 0; color: var(--text-3); }
+.lb-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.lb-info { flex: 1; }
+.lb-name { font-size: 14px; font-weight: 600; }
+.lb-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.lb-pts { font-size: 15px; font-weight: 800; }
+
+/* ── STATS ── */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.stat-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+
+.stat-card.full { grid-column: 1 / -1; }
+.stat-lbl { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+.stat-val { font-size: 34px; font-weight: 800; letter-spacing: -1.5px; }
+.stat-sub { font-size: 12px; color: var(--text-3); margin-top: 4px; }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  height: var(--nav-h);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 8px 8px;
+  z-index: 100;
+}
+
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 0;
+  cursor: pointer;
+  opacity: 0.3;
+  transition: opacity 0.15s;
+}
+
+.nav-item.active { opacity: 1; }
+.nav-icon { font-size: 22px; }
+.nav-lbl { font-size: 10px; font-weight: 600; color: var(--text); }
+
+/* ── ANIM ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.scroll > * { animation: fadeUp 0.22s ease both; }
+.scroll > *:nth-child(1) { animation-delay: 0s; }
+.scroll > *:nth-child(2) { animation-delay: 0.04s; }
+.scroll > *:nth-child(3) { animation-delay: 0.08s; }
+.scroll > *:nth-child(4) { animation-delay: 0.12s; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-title" id="screen-title">Train</div>
+    <div class="topbar-right">
+      <div class="chip">WR <span class="v" id="wr-disp">—</span></div>
+      <div class="chip">Pts <span class="v" id="pts-disp">0</span></div>
+      <div class="streak-chip" id="streak-chip">🔥 <span id="streak-disp">0</span></div>
+    </div>
+  </div>
+
+  <!-- TRAIN -->
+  <div class="screen active" id="screen-train">
+    <div class="scroll" id="train-scroll"></div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="screen" id="screen-lb">
+    <div class="scroll">
+      <div class="lb-list" id="lb-list"></div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="screen" id="screen-stats">
+    <div class="scroll" id="stats-scroll"></div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" id="nav-train" onclick="switchScreen('train')">
+      <div class="nav-icon">📈</div>
+      <div class="nav-lbl">Train</div>
+    </div>
+    <div class="nav-item" id="nav-lb" onclick="switchScreen('lb')">
+      <div class="nav-icon">🏆</div>
+      <div class="nav-lbl">Leaderboard</div>
+    </div>
+    <div class="nav-item" id="nav-stats" onclick="switchScreen('stats')">
+      <div class="nav-icon">📊</div>
+      <div class="nav-lbl">My Stats</div>
+    </div>
+  </nav>
+
+</div>
+<script>
+// ── ASSETS ──────────────────────────────────────────────────────────────────
+const ASSETS = [
+  { ticker:'NVDA', name:'NVIDIA Corp.',    sector:'Technology',    tf:'1D', seed:1,
+    fund:[{k:'P/E Ratio',c:'45.2',p:'38.1'},{k:'Revenue TTM',c:'$79.8B',p:'$44.9B'},{k:'EPS',c:'$1.89',p:'$0.57'},{k:'Gross Margin',c:'72.7%',p:'66.8%'}],
+    news:[{d:'Q1 2024',t:'Data center revenue grew 427% YoY on surging AI chip demand.'},{d:'Mar 2024',t:'Blackwell architecture unveiled — successor to Hopper GPUs.'}] },
+  { ticker:'AAPL', name:'Apple Inc.',       sector:'Technology',    tf:'4H', seed:2,
+    fund:[{k:'P/E Ratio',c:'28.4',p:'26.1'},{k:'Revenue TTM',c:'$383B',p:'$394B'},{k:'EPS',c:'$6.43',p:'$6.11'},{k:'Services Rev',c:'$23.1B',p:'$20.9B'}],
+    news:[{d:'Q4 2023',t:'iPhone 15 sales below expectations in China amid Huawei competition.'},{d:'Nov 2023',t:'Services segment hits record revenue — fastest growing division.'}] },
+  { ticker:'TSLA', name:'Tesla Inc.',       sector:'EV / Auto',     tf:'1H', seed:3,
+    fund:[{k:'P/E Ratio',c:'62.1',p:'78.4'},{k:'Deliveries',c:'435k',p:'466k'},{k:'Gross Margin',c:'17.9%',p:'25.1%'},{k:'Revenue TTM',c:'$97.7B',p:'$81.5B'}],
+    news:[{d:'Q3 2023',t:'Deliveries miss estimates at 435k — price cuts weigh on margins.'},{d:'Oct 2023',t:'Cybertruck production ramp slower than projected.'}] },
+  { ticker:'META', name:'Meta Platforms',   sector:'Social Media',  tf:'1D', seed:4,
+    fund:[{k:'P/E Ratio',c:'23.8',p:'19.1'},{k:'Revenue TTM',c:'$135B',p:'$117B'},{k:'DAU',c:'3.19B',p:'2.96B'},{k:'Ad Rev Growth',c:'+24%',p:'+12%'}],
+    news:[{d:'Q3 2023',t:'Ad revenue accelerating sharply on Reels monetization gains.'},{d:'Oct 2023',t:'Reality Labs division posts $4.6B quarterly loss.'}] },
+  { ticker:'AMZN', name:'Amazon.com Inc.',  sector:'Cloud / E-com', tf:'1D', seed:5,
+    fund:[{k:'P/E Ratio',c:'44.6',p:'96.2'},{k:'AWS Growth',c:'+17%',p:'+12%'},{k:'Op. Margin',c:'7.8%',p:'2.7%'},{k:'Revenue TTM',c:'$574B',p:'$514B'}],
+    news:[{d:'Q3 2023',t:'AWS growth reaccelerating — AI workloads key demand driver.'},{d:'Sep 2023',t:'Prime membership crosses 200M globally for first time.'}] },
+  { ticker:'SPY',  name:'S&P 500 ETF',      sector:'Index / ETF',   tf:'1W', seed:6,
+    fund:[{k:'P/E (fwd)',c:'22.1',p:'19.8'},{k:'Div Yield',c:'1.32%',p:'1.58%'},{k:'Tech Weight',c:'30.1%',p:'27.4%'},{k:'AUM',c:'$530B',p:'$480B'}],
+    news:[{d:'Nov 2023',t:'Fed signals potential rate cuts as inflation cools toward 3%.'},{d:'Oct 2023',t:'Tech sector weighting hits multi-year high of 30% in S&P 500.'}] },
+  { ticker:'MSFT', name:'Microsoft Corp.',  sector:'Technology',    tf:'1D', seed:7,
+    fund:[{k:'P/E Ratio',c:'34.2',p:'29.8'},{k:'Revenue TTM',c:'$245B',p:'$212B'},{k:'Azure Growth',c:'+29%',p:'+22%'},{k:'Op. Margin',c:'44.6%',p:'41.8%'}],
+    news:[{d:'Q2 2024',t:'Copilot integration drives Office 365 seat growth ahead of estimates.'},{d:'Jan 2024',t:'Azure revenue grew 29% with AI services as key demand driver.'}] },
+];
+
+const LB_BASE = [
+  { name:'Alex T.',    score:2840, wr:'74%', streak:12, emoji:'🧑‍💻' },
+  { name:'Sophie M.',  score:2310, wr:'68%', streak:7,  emoji:'👩' },
+  { name:'Romain C.',  score:1950, wr:'65%', streak:5,  emoji:'🧑' },
+  { name:'You',        score:0,    wr:'—',   streak:0,  emoji:'⭐', you:true },
+  { name:'Jordan L.',  score:820,  wr:'51%', streak:2,  emoji:'👤' },
+];
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let score=0, correct=0, total=0, streak=0, bestStreak=0;
+let curAsset, histCandles, futData, answered=false;
+let usedSeeds=new Set(), history=[];
+
+// ── RNG ──────────────────────────────────────────────────────────────────────
+function rng(seed){ let s=seed; return ()=>{ s=(s*1664525+1013904223)&0xffffffff; return (s>>>0)/0xffffffff; }; }
+
+// ── CANDLES ──────────────────────────────────────────────────────────────────
+function genHist(seed, n=55){
+  const r=rng(seed*999+42); let p=80+r()*120; const v=0.017+r()*0.022;
+  return Array.from({length:n},()=>{
+    const o=p, ch=(r()-0.48)*v*p, c=p+ch;
+    const h=Math.max(o,c)+r()*v*p*0.5, l=Math.min(o,c)-r()*v*p*0.5;
+    p=c; return {o,c,h,l};
+  });
+}
+
+function genFuture(seed, startP, n=18){
+  const r=rng(seed*777+13); const bias=(r()-0.5)*0.004; const v=0.016+r()*0.02;
+  let p=startP;
+  const candles=Array.from({length:n},()=>{
+    const o=p, ch=(r()-0.5+bias)*v*p, c=p+ch;
+    const h=Math.max(o,c)+r()*v*p*0.4, l=Math.min(o,c)-r()*v*p*0.4;
+    p=c; return {o,c,h,l};
+  });
+  const pct=(candles[candles.length-1].c - candles[0].o)/candles[0].o;
+  const dir=Math.abs(pct)<0.018?'sideways':pct>0?'up':'down';
+  return {candles,dir,pct};
+}
+
+// ── CHART ────────────────────────────────────────────────────────────────────
+function drawChart(canvas, hist, fut, revealed){
+  const all = revealed ? [...hist, ...fut.candles] : hist;
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.offsetWidth, H=canvas.offsetHeight||200;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  const ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+  const pad={t:12,r:10,b:26,l:46};
+  const cW=W-pad.l-pad.r, cH=H-pad.t-pad.b;
+  const prices=all.flatMap(c=>[c.h,c.l]);
+  const minP=Math.min(...prices)*0.997, maxP=Math.max(...prices)*1.003;
+  const toX=(i,n)=>pad.l+(i/(n-1))*cW;
+  const toY=p=>pad.t+(1-(p-minP)/(maxP-minP))*cH;
+
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+
+  for(let i=0;i<=4;i++){
+    const y=pad.t+(i/4)*cH;
+    ctx.strokeStyle='#f0f0f0'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(W-pad.r,y); ctx.stroke();
+    ctx.fillStyle='#bbb'; ctx.font='10px Inter,sans-serif'; ctx.textAlign='right';
+    ctx.fillText((maxP-(i/4)*(maxP-minP)).toFixed(1), pad.l-4, y+3);
+  }
+
+  const histN=hist.length;
+  const totalN=hist.length+fut.candles.length;
+
+  if(!revealed){
+    const sepX=toX(histN-1,totalN);
+    ctx.fillStyle='#f8f8f8'; ctx.fillRect(sepX,pad.t,W-pad.r-sepX,cH);
+    ctx.strokeStyle='#ddd'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(sepX,pad.t); ctx.lineTo(sepX,H-pad.b); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#ccc'; ctx.font='10px Inter,sans-serif'; ctx.textAlign='center';
+    ctx.fillText('NEXT', sepX+(W-pad.r-sepX)/2, H/2+3);
+  }
+
+  const drawSet=revealed?all:hist;
+  const drawN=revealed?all.length:totalN;
+  drawSet.forEach((c,i)=>{
+    const isFut=i>=histN;
+    ctx.globalAlpha=isFut?0.85:1;
+    const x=toX(i,drawN);
+    const cw=Math.max(1.5,(cW/drawN)*0.55);
+    const bull=c.c>=c.o;
+    const col=bull?'#16a34a':'#dc2626';
+    ctx.strokeStyle=col; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(x,toY(c.h)); ctx.lineTo(x,toY(c.l)); ctx.stroke();
+    const by=toY(Math.max(c.o,c.c));
+    const bh=Math.max(1,toY(Math.min(c.o,c.c))-by);
+    ctx.fillStyle=bull?'#f0fdf4':'#fef2f2'; ctx.strokeStyle=col; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.rect(x-cw/2,by,cw,bh); ctx.fill(); ctx.stroke();
+    ctx.globalAlpha=1;
+  });
+}
+
+// ── DELTA ────────────────────────────────────────────────────────────────────
+function deltaHTML(cur, prev){
+  const c=parseFloat(cur.replace(/[^0-9.\-]/g,'')), p=parseFloat(prev.replace(/[^0-9.\-]/g,''));
+  if(!p||!c) return '';
+  const pct=((c-p)/Math.abs(p))*100;
+  const dir=Math.abs(pct)<0.5?'flat':pct>0?'up':'down';
+  const arrow=dir==='up'?'▲':dir==='down'?'▼':'—';
+  return `<span class="delta ${dir}">${arrow} ${pct>0?'+':''}${pct.toFixed(1)}%</span>`;
+}
+
+// ── RENDER TRAIN ─────────────────────────────────────────────────────────────
+function renderTrain(){
+  answered=false;
+  const avail=ASSETS.filter(a=>!usedSeeds.has(a.seed));
+  if(!avail.length) usedSeeds.clear();
+  const pool=avail.length?avail:ASSETS;
+  curAsset=pool[Math.floor(Math.random()*pool.length)];
+  usedSeeds.add(curAsset.seed);
+
+  const hSeed=curAsset.seed*(Date.now()%99991)+1;
+  histCandles=genHist(hSeed);
+  futData=genFuture(hSeed+17, histCandles[histCandles.length-1].c);
+
+  document.getElementById('train-scroll').innerHTML=`
+    <div class="card asset-card">
+      <div>
+        <div class="asset-ticker">${curAsset.ticker}</div>
+        <div class="asset-name">${curAsset.name}</div>
+      </div>
+      <div class="badges">
+        <span class="badge">${curAsset.sector}</span>
+        <span class="badge">${curAsset.tf}</span>
+      </div>
+    </div>
+
+    <div class="card main-card">
+      <div class="chart-top">
+        <span class="chart-lbl">Price Action</span>
+        <span class="tf-badge">${curAsset.tf}</span>
+      </div>
+      <canvas id="chart" style="height:200px;width:100%;"></canvas>
+      <div class="divider"></div>
+      <div class="action-area">
+        <div class="action-q">Where does price go next?</div>
+        <div class="action-btns">
+          <button class="action-btn" id="btn-up"   onclick="guess('up')">
+            <span class="btn-icon">↑</span>Bullish
+          </button>
+          <button class="action-btn" id="btn-side" onclick="guess('sideways')">
+            <span class="btn-icon">→</span>Sideways
+          </button>
+          <button class="action-btn" id="btn-down" onclick="guess('down')">
+            <span class="btn-icon">↓</span>Bearish
+          </button>
+        </div>
+        <div class="result-banner" id="result-banner">
+          <div>
+            <div class="result-title" id="result-title"></div>
+            <div class="result-sub"   id="result-sub"></div>
+          </div>
+          <button class="next-btn" onclick="renderTrain()">Next →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card fund-card">
+      <div class="sec-title">Fundamentals</div>
+      <div class="fund-grid">
+        ${curAsset.fund.map(f=>`
+          <div class="fund-item">
+            <div class="fund-key">${f.k}</div>
+            <div class="fund-cur">${f.c}</div>
+            <div class="fund-prev-row">
+              <span class="fund-prev">prev: ${f.p}</span>
+              ${deltaHTML(f.c,f.p)}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="card news-card">
+      <div class="sec-title">Context</div>
+      <div class="news-list">
+        ${curAsset.news.map(n=>`
+          <div class="news-item">
+            <div class="news-date">${n.d}</div>
+            ${n.t}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  requestAnimationFrame(()=>{
+    const c=document.getElementById('chart');
+    if(c){ c.style.height='200px'; drawChart(c,histCandles,futData,false); }
+  });
+}
+
+// ── GUESS ────────────────────────────────────────────────────────────────────
+function guess(dir){
+  if(answered) return;
+  answered=true; total++;
+  const win=dir===futData.dir;
+  if(win){ correct++; streak++; bestStreak=Math.max(bestStreak,streak); score+=10+Math.max(0,(streak-1)*3); }
+  else streak=0;
+  history.push({win, ticker:curAsset.ticker, pct:futData.pct});
+
+  ['btn-up','btn-side','btn-down'].forEach(id=>document.getElementById(id).disabled=true);
+  const clsMap={up:'sel-up',sideways:'sel-side',down:'sel-down'};
+  const idMap={up:'btn-up',sideways:'btn-side',down:'btn-down'};
+  document.getElementById(idMap[dir]).classList.add(clsMap[dir]);
+
+  const banner=document.getElementById('result-banner');
+  banner.classList.add('show', win?'correct':'wrong');
+  document.getElementById('result-title').textContent=win
+    ?`Correct!${streak>1?' · 🔥 '+streak+' streak':''}`
+    :`Wrong — price went ${futData.dir}`;
+  const p=(futData.pct*100).toFixed(1);
+  document.getElementById('result-sub').textContent=`${p>0?'+':''}${p}% over next ${futData.candles.length} bars`;
+
+  requestAnimationFrame(()=>{ const c=document.getElementById('chart'); if(c) drawChart(c,histCandles,futData,true); });
+  updateHUD(); updateLB(); updateStats();
+}
+
+// ── HUD ──────────────────────────────────────────────────────────────────────
+function updateHUD(){
+  document.getElementById('pts-disp').textContent=score;
+  document.getElementById('wr-disp').textContent=total>0?Math.round(correct/total*100)+'%':'—';
+  const sc=document.getElementById('streak-chip');
+  if(streak>=2){ sc.style.display='flex'; document.getElementById('streak-disp').textContent=streak; }
+  else sc.style.display='none';
+}
+
+// ── LEADERBOARD ──────────────────────────────────────────────────────────────
+function updateLB(){
+  const data=LB_BASE.map(p=>p.you?{...p,score,wr:total>0?Math.round(correct/total*100)+'%':'—',streak}:p);
+  data.sort((a,b)=>b.score-a.score);
+  const medals=['🥇','🥈','🥉'];
+  document.getElementById('lb-list').innerHTML=data.map((p,i)=>`
+    <div class="lb-item ${p.you?'you':''}">
+      <div class="lb-rank">${medals[i]||i+1}</div>
+      <div class="lb-avatar">${p.emoji}</div>
+      <div class="lb-info">
+        <div class="lb-name">${p.name}${p.you?' (you)':''}</div>
+        <div class="lb-sub">WR ${p.wr} · Streak ${p.streak}</div>
+      </div>
+      <div class="lb-pts">${p.score} pts</div>
+    </div>
+  `).join('');
+}
+
+// ── STATS ────────────────────────────────────────────────────────────────────
+function updateStats(){
+  const wins=history.filter(h=>h.win).length;
+  const form=history.slice(-5).map(h=>h.win?'✅':'❌').join(' ')||'—';
+  const tickers={};
+  history.forEach(h=>{ tickers[h.ticker]=tickers[h.ticker]||{w:0,n:0}; tickers[h.ticker].n++; if(h.win)tickers[h.ticker].w++; });
+  const best=Object.entries(tickers).sort((a,b)=>(b[1].w/b[1].n)-(a[1].w/a[1].n))[0];
+
+  document.getElementById('stats-scroll').innerHTML=`
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-lbl">Score</div>
+        <div class="stat-val">${score}</div>
+        <div class="stat-sub">total pts</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">Win Rate</div>
+        <div class="stat-val">${total>0?Math.round(wins/total*100)+'%':'—'}</div>
+        <div class="stat-sub">${wins}/${total} correct</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">Best Streak</div>
+        <div class="stat-val">${bestStreak}</div>
+        <div class="stat-sub">in a row</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">Charts Done</div>
+        <div class="stat-val">${total}</div>
+        <div class="stat-sub">sessions</div>
+      </div>
+      <div class="stat-card full">
+        <div class="stat-lbl">Best Ticker</div>
+        <div class="stat-val" style="font-size:22px">${best?best[0]:'—'}</div>
+        <div class="stat-sub">highest win rate</div>
+      </div>
+      <div class="stat-card full">
+        <div class="stat-lbl">Recent Form</div>
+        <div class="stat-val" style="font-size:20px;letter-spacing:4px">${form}</div>
+        <div class="stat-sub">last 5 charts</div>
+      </div>
+    </div>
+  `;
+}
+
+// ── SCREEN SWITCH ─────────────────────────────────────────────────────────────
+function switchScreen(name){
+  ['train','lb','stats'].forEach(s=>{
+    document.getElementById('screen-'+s).classList.toggle('active',s===name);
+    document.getElementById('nav-'+s).classList.toggle('active',s===name);
+  });
+  document.getElementById('screen-title').textContent={train:'Train',lb:'Leaderboard',stats:'My Stats'}[name];
+  if(name==='lb') updateLB();
+  if(name==='stats') updateStats();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+updateLB(); updateStats(); renderTrain();
+window.guess=guess; window.renderTrain=renderTrain; window.switchScreen=switchScreen;
+window.addEventListener('resize',()=>{
+  const c=document.getElementById('chart');
+  if(c) drawChart(c,histCandles,futData,answered);
+});
+</script>
+</body>
+</html>
